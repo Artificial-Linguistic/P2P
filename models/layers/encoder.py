@@ -71,7 +71,7 @@ class ProjEnc(nn.Module):
         # Calculate range
         pc_range = pc.max(dim=1)[0] - pc.min(dim=1)[0]  # B 3
         grid_size = pc_range[:, :2].max(dim=-1)[0] / (self.obj_size - 3)  # B,
-        idx_xy = torch.floor((pc[:, :, :2] - pc.min(dim=1)[0][:[:, :2].unsqueeze(dim=1)) / grid_size.unsqueeze(dim=1).unsqueeze(dim=2))  # B N 2
+        idx_xy = torch.floor((pc[:, :, :2] - pc.min(dim=1)[0][:, :2].unsqueeze(dim=1)) / grid_size.unsqueeze(dim=1).unsqueeze(dim=2))  # B N 2
         idx_xy_dense = (idx_xy.unsqueeze(dim=2) + self.offset.unsqueeze(dim=0).unsqueeze(dim=0).to(pc.device)).view(idx_xy.size(0), N*9, 2) + 1
         # B N 1 2 + 1 1 9 2 -> B N 9 2 -> B 9N 2
         idx_xy_dense_center = torch.floor((idx_xy_dense.max(dim=1)[0] + idx_xy_dense.min(dim=1)[0]) / 2).int()
@@ -122,4 +122,11 @@ class ProjEnc(nn.Module):
 
         # Visualize and save the first image in the batch with a unique filename
         self.counter += 1
-        self.vis_img(img[0].detach().cpu(), f'{self.save_dir}/vis_img_{
+        self.vis_img(img[0].detach().cpu(), f'{self.save_dir}/vis_img_{self.counter}.jpg')
+
+        return img_norm
+
+    def vis_img(self, img, filename):
+        pic = tvF.to_pil_image(img)
+        pic.save(filename)
+        print(f"Image saved at: {os.path.abspath(filename)}")
