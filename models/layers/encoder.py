@@ -18,7 +18,7 @@ class ProjEnc(nn.Module):
         self.imagenet_mean = torch.Tensor(cfg.imagenet_default_mean)
         self.imagenet_std = torch.Tensor(cfg.imagenet_default_std)
         self.counter = 0
-        self.save_dir = cfg.save_dir
+        self.save_dir = OutputImage
 
         # Create the directory if it does not exist
         if not os.path.exists(self.save_dir):
