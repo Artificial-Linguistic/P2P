@@ -1,9 +1,10 @@
+import os
 import torch
 import torch.nn as nn
 from torch_scatter import scatter
-
+from torchvision.transforms import functional as tvF
+from timm.models.resnet import BasicBlock
 from models.layers.utils import knn_point
-from timm.models.resnet import BasicBlock, Bottleneck
 
 class ProjEnc(nn.Module):
     def __init__(self, cfg):
@@ -16,12 +17,19 @@ class ProjEnc(nn.Module):
         self.obj_size = cfg.obj_size
         self.imagenet_mean = torch.Tensor(cfg.imagenet_default_mean)
         self.imagenet_std = torch.Tensor(cfg.imagenet_default_std)
+        self.counter = 0
+        self.save_dir = cfg.save_dir
+
+        # Create the directory if it does not exist
+        if not os.path.exists(self.save_dir):
+            os.makedirs(self.save_dir)
 
         self.input_trans = nn.Conv1d(3, self.trans_dim, 1)
-        self.graph_layer = nn.Sequential(nn.Conv2d(self.trans_dim*2, self.graph_dim, kernel_size=1, bias=False),
-                                        nn.GroupNorm(4, self.graph_dim),
-                                        nn.LeakyReLU(negative_slope=0.2)
-                                        )
+        self.graph_layer = nn.Sequential(
+            nn.Conv2d(self.trans_dim * 2, self.graph_dim, kernel_size=1, bias=False),
+            nn.GroupNorm(4, self.graph_dim),
+            nn.LeakyReLU(negative_slope=0.2)
+        )
         self.proj_layer = nn.Conv1d(self.graph_dim, self.graph_dim, kernel_size=1)
         
         self.img_block = nn.Sequential(
@@ -30,9 +38,11 @@ class ProjEnc(nn.Module):
         )
         self.img_layer = nn.Conv2d(self.graph_dim, 3, kernel_size=1)
 
-        self.offset = torch.Tensor([[-1, -1], [-1, 0], [-1, 1], 
-                                    [0, -1], [0, 0], [0, 1],
-                                    [1, -1], [1, 0], [1, 1]])
+        self.offset = torch.Tensor([
+            [-1, -1], [-1, 0], [-1, 1], 
+            [0, -1], [0, 0], [0, 1],
+            [1, -1], [1, 0], [1, 1]
+        ])
 
     @staticmethod
     def get_graph_feature(coor_q, x_q, coor_k, x_k, k):
@@ -58,10 +68,10 @@ class ProjEnc(nn.Module):
     def forward(self, original_pc, pc):
         B, N, _ = pc.shape
         
-        # calculate range
+        # Calculate range
         pc_range = pc.max(dim=1)[0] - pc.min(dim=1)[0]  # B 3
         grid_size = pc_range[:, :2].max(dim=-1)[0] / (self.obj_size - 3)  # B,
-        idx_xy = torch.floor((pc[:, :, :2] - pc.min(dim=1)[0][:, :2].unsqueeze(dim=1)) / grid_size.unsqueeze(dim=1).unsqueeze(dim=2))  # B N 2
+        idx_xy = torch.floor((pc[:, :, :2] - pc.min(dim=1)[0][:[:, :2].unsqueeze(dim=1)) / grid_size.unsqueeze(dim=1).unsqueeze(dim=2))  # B N 2
         idx_xy_dense = (idx_xy.unsqueeze(dim=2) + self.offset.unsqueeze(dim=0).unsqueeze(dim=0).to(pc.device)).view(idx_xy.size(0), N*9, 2) + 1
         # B N 1 2 + 1 1 9 2 -> B N 9 2 -> B 9N 2
         idx_xy_dense_center = torch.floor((idx_xy_dense.max(dim=1)[0] + idx_xy_dense.min(dim=1)[0]) / 2).int()
@@ -82,12 +92,12 @@ class ProjEnc(nn.Module):
         # B N 9 C -> B 9N C
         assert idx_xy_dense_offset.min() >= 0 and idx_xy_dense_offset.max() <= (self.obj_size-1), str(idx_xy_dense_offset.min()) + '-' + str(idx_xy_dense_offset.max())
         
-        # change idx to 1-dim
+        # Change idx to 1-dim
         new_idx_xy_dense = idx_xy_dense_offset[:, :, 0] * self.obj_size + idx_xy_dense_offset[:, :, 1]
-        # scatter the features    
+        # Scatter the features    
         out = scatter(f_dense, new_idx_xy_dense.long(), dim=1, reduce="sum") 
 
-        #need to pad 
+        # Need to pad 
         if out.size(1) < self.obj_size * self.obj_size: 
             delta = self.obj_size * self.obj_size - out.size(1) 
             zero_pad = torch.zeros(out.size(0), delta, out.size(2)).to(out.device) 
@@ -95,7 +105,7 @@ class ProjEnc(nn.Module):
         else: 
             res = out.reshape((out.size(0), self.obj_size, self.obj_size, out.size(2))) 
         if self.obj_size < self.img_size:
-            # pad to 256
+            # Pad to 256
             pad_size = self.img_size - self.obj_size
             zero_pad_h = torch.zeros(out.size(0), int(pad_size // 2), self.obj_size, out.size(2)).to(out.device)
             zero_pad_w = torch.zeros(out.size(0), self.img_size, int(pad_size // 2), out.size(2)).to(out.device)
@@ -110,4 +120,6 @@ class ProjEnc(nn.Module):
         img = nn.Sigmoid()(img)
         img_norm = img.sub(mean_vec).div(std_vec)
 
-        return img_norm
+        # Visualize and save the first image in the batch with a unique filename
+        self.counter += 1
+        self.vis_img(img[0].detach().cpu(), f'{self.save_dir}/vis_img_{
