@@ -25,7 +25,7 @@ pip install -r requirements.txt
 
 ```
 
-# Data Preparation
+### Data Preparation
 
 Download the Processed Dataset from [[Google Drive]](https://drive.google.com/drive/folders/1kR2QILZOq1PhCyMMyGwMCvf5ZJbt4hhk?usp=sharing).
 Or you can download the offical ModelNet from [here](https://shapenet.cs.stanford.edu/media/modelnet40_normal_resampled.zip), and process it by yourself.
@@ -43,6 +43,45 @@ The data is expected to be in the following file structure:
             |-- modelnet40_test_8192pts_fps.dat
     |-- dataset/
 ```
+## Usage
+
+### Train
+
+```
+bash tool/train.sh EXP_NAME CONFIG_PATH DATASET
+```
+
+For example, to train P2P model with ConvNeXt-B-1k as base model on the ModelNet40 dataset:
+
+```
+bash tool/train.sh p2p_ConvNeXt-B-1k config/ModelNet40/p2p_ConvNeXt-B-1k.yaml ModelNet40
+```
+
+### Test
+
+```
+bash tool/test.sh EXP_NAME CONFIG_PATH DATASET
+```
+
+For example, to test P2P model with ConvNeXt-B-1k as base model the ModelNet40 dataset:
+
+```
+bash tool/test.sh p2p_ConvNeXt-B-1k config/ModelNet40/p2p_ConvNeXt-B-1k.yaml ModelNet40
+```
+
+### Reproduce
+
+```
+bash tool/reproduce.sh DATASET MODEL
+```
+
+For example, to reproduce results of P2P model with ConvNeXt-B-1k as base model on the ModelNet40 dataset with our provided checkpoint:
+
+```
+bash tool/reproduce.sh ModelNet40 ConvNeXt-B-1k
+```
+
+You can download the already pre-trained Conv-NeXt Models from [[Google Drive]](https://drive.google.com/drive/folders/1gglAunXt55tbJlszvkJm9OYpovk5uBca?usp=drive_link)
 
 
 
