@@ -26,8 +26,8 @@ TRAIN:
 
   train_gpu: [0]
   workers: 16
-  batch_size: 16
-  batch_size_val: 16
+  batch_size: 64
+  batch_size_val: 64
   
   lr: 5e-4
   weight_decay: 0.05
@@ -57,6 +57,6 @@ Distributed:
 TEST:
   test_workers: 4
   test_gpu: [0]
-  test_batch_size: 16
+  test_batch_size: 64
   model_path:
   save_folder:
