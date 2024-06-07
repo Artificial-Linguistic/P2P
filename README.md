@@ -83,5 +83,14 @@ bash tool/reproduce.sh ModelNet40 ConvNeXt-B-1k
 
 You can download the already pre-trained Conv-NeXt Models from [[Google Drive]](https://drive.google.com/drive/folders/1gglAunXt55tbJlszvkJm9OYpovk5uBca?usp=drive_link)
 
+P2P/
+    |-- pretrained/
+        |-- reproduce/
+            |-- ckpt/
+                |-- ModelNet40/
+                    |-- ConvNeXt-B-1k-ModelNet40.pth
+                |-- ScanObjectNN/
+                    |-- ConvNeXt-B-1k-ScanObjectNN.pth
+
 
 
