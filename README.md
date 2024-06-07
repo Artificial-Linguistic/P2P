@@ -8,7 +8,7 @@ The Point-to-Pixel (P2P) prompting framework is an advanced and integrated appro
 
 ## Preparation
 
-###Installation Pre-Requisites
+### Installation Pre-Requisites
 
 Python 3.10.12
 CUDA 12.2
@@ -21,7 +21,28 @@ PointNet++
 Installing PointNet++
 
 cd lib
-cd PointNet
+pip install -r requirements.txt
+
+```
+
+# Data Preparation
+
+Download the Processed Dataset from [[Google Drive]](https://drive.google.com/drive/folders/1kR2QILZOq1PhCyMMyGwMCvf5ZJbt4hhk?usp=sharing).
+Or you can download the offical ModelNet from [here](https://shapenet.cs.stanford.edu/media/modelnet40_normal_resampled.zip), and process it by yourself.
+
+The data is expected to be in the following file structure:
+```
+    P2P/
+    |-- config/
+    |-- data/
+        |-- ModelNet40/
+            |-- modelnet40_shape_names.txt
+            |-- modelnet_train.txt
+            |-- modelnet_test.txt
+            |-- modelnet40_train_8192pts_fps.dat
+            |-- modelnet40_test_8192pts_fps.dat
+    |-- dataset/
+```
 
 
 
