@@ -26,12 +26,12 @@ TRAIN:
 
   train_gpu: [0]
   workers: 16
-  batch_size: 32
-  batch_size_val: 32
+  batch_size: 64
+  batch_size_val: 64
   
   lr: 5e-4
   weight_decay: 0.05
-  epochs: 1
+  epochs: 300
   start_epoch: 0
   warmup_epochs: 0
   scheduler: CosLR
@@ -57,6 +57,6 @@ Distributed:
 TEST:
   test_workers: 4
   test_gpu: [0]
-  test_batch_size: 32
+  test_batch_size: 64
   model_path:
   save_folder:
