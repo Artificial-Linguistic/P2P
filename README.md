@@ -1,4 +1,4 @@
-# Fine Tuning Pre-Trained Image Models for Point Cloud Analysis with Point to Pixel Promting
+# Fine Tuning Pre-Trained Image Models for Point Cloud Analysis with Point to Pixel Prompting
 
 Created by Lavanya Joshi
  
